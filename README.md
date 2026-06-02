@@ -1,4 +1,4 @@
-# Video Generation Landscape
+# 🎥🎬 Video Generation Landscape
 https://piapi.ai/docs/seedance-api/seedance-2
 
 Uma coisa importante para começar: modelos como o **Seedance 2.0**, o **Veo**, o **Sora**, o **Kling** ou o **Wan** normalmente não são apenas uma "LLM que gera vídeo". Na verdade, eles são sistemas multimodais compostos por vários modelos especializados trabalhando juntos. A LLM participa principalmente da compreensão do prompt, mas a geração visual em si costuma ser realizada por arquiteturas de difusão, transformers multimodais e módulos temporais específicos para vídeo.
