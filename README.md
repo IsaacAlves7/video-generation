@@ -3,6 +3,30 @@ https://piapi.ai/docs/seedance-api/seedance-2
 
 Uma coisa importante para começar: modelos como o **Seedance 2.0**, o **Veo**, o **Sora**, o **Kling** ou o **Wan** normalmente não são apenas uma "LLM que gera vídeo". Na verdade, eles são sistemas multimodais compostos por vários modelos especializados trabalhando juntos. A LLM participa principalmente da compreensão do prompt, mas a geração visual em si costuma ser realizada por arquiteturas de difusão, transformers multimodais e módulos temporais específicos para vídeo.
 
+O que o Seedance 2.0 é por baixo, é um **Video Diffusion Transformer** (similar ao DiT) com geração conjunta de áudio+vídeo. Para replicar algo nesse nível você precisaria de:
+
+- ~50.000–500.000 horas de vídeo rotulado de alta qualidade
+- Clusters de A100/H100 por **semanas ou meses**
+- Time de dezenas de pesquisadores
+- Orçamento estimado: **$5M–$50M** só em compute
+
+Isso está fora do alcance de uma pessoa ou equipe pequena.
+
+## O que é realisticamente possível fazer
+
+Existem 3 caminhos viáveis dependendo do seu objetivo real:
+
+**Caminho 1 — Fine-tune de um modelo open-source** *(semanas, ~$500–2000 em GPU)*
+Pegar o Wan 2.1 ou CogVideoX e especializar em um estilo/domínio específico com seus próprios dados. Resultado: modelo seu, customizado, rodando local.
+
+**Caminho 2 — Construir um modelo pequeno do zero** *(meses, viável com 1 GPU)*
+Implementar um Video Diffusion Transformer simples com PyTorch, treinar em um dataset público como WebVid ou Panda-70M. Qualidade bem abaixo do Seedance, mas é **seu** modelo, você entende cada camada.
+
+**Caminho 3 — Distilação de conhecimento de open-sources** *(meses)*
+Usar modelos open como "professores" para treinar um modelo menor e mais eficiente. Legalmente viável se os professores forem modelos com licença permissiva.
+
+Qual desses caminhos faz mais sentido para você? E qual é o objetivo final — aprender a fundo, ter um modelo para produção, ou especializar em um domínio específico? Isso muda completamente o que vale a pena construir.
+
 Quando você instala um sistema open source de geração de vídeo localmente, como um pipeline baseado em Diffusers, Wan ou CogVideoX, o processo começa muito antes da geração. Primeiro você precisa do ambiente: Python, CUDA, drivers NVIDIA, PyTorch, bibliotecas de inferência e os pesos do modelo. Os pesos são os arquivos gigantescos que armazenam o conhecimento aprendido durante o treinamento. Dependendo do modelo, eles podem ocupar dezenas ou centenas de gigabytes.
 
 Após a instalação, o modelo não "sabe gerar vídeos" da forma como um programador escreveria um algoritmo tradicional. O que ele possui é uma enorme quantidade de parâmetros numéricos aprendidos durante o treinamento. Durante esse treinamento, bilhões de imagens, vídeos e descrições textuais foram apresentados ao sistema. O modelo aprendeu relações estatísticas extremamente complexas entre palavras, conceitos, objetos, movimentos, iluminação, câmeras, estilos artísticos, física aparente e comportamento visual.
