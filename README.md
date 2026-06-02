@@ -12,6 +12,51 @@ O que o Seedance 2.0 é por baixo, é um **Video Diffusion Transformer** (simila
 
 Isso está fora do alcance de uma pessoa ou equipe pequena.
 
+Deixa eu clarificar como o DiT realmente funciona: A divisão real no DiT para vídeo: O **conditioning** (o que você passa como entrada para guiar a geração) é que varia, não o tipo de modelo. Um mesmo modelo DiT pode aceitar múltiplos tipos de condicionamento:
+
+Tipos de condicionamento:
+
+**Text conditioning (T2V)**: O prompt de texto é codificado por um encoder de linguagem (T5, CLIP, etc.) e injetado no DiT via cross-attention. O modelo aprende a associar descrições textuais com padrões visuais.
+
+**Image conditioning (I2V)**: Uma imagem de referência é codificada por um VAE e injetada como contexto visual. O modelo aprende a "animar" ou "continuar" a partir daquela imagem.
+
+**Ambos juntos (multimodal)**: É o que o Seedance 2.0, Wan 2.1 e HunyuanVideo fazem — o mesmo backbone DiT recebe texto + imagem + áudio simultâneamente via diferentes mecanismos de atenção.
+
+Como o DiT processa tudo isso:
+
+```
+Entrada bruta
+     │
+     ▼
+  VAE Encoder  ──────────────────────────────────┐
+(comprime vídeo/imagem em espaço latente)         │
+     │                                            │
+     ▼                                            ▼
+Latent Tokens                           Conditioning Tokens
+(o vídeo virou patches)           (texto via T5, imagem via CLIP)
+     │                                            │
+     └──────────────┬─────────────────────────────┘
+                    ▼
+             DiT Blocks
+        (self-attention + cross-attention)
+                    │
+                    ▼
+             VAE Decoder
+        (latente → vídeo final)
+```
+
+Os dois componentes que você treina separadamente
+
+| Componente | O que faz | Treina separado? |
+|---|---|---|
+| **VAE** | Comprime e reconstrói frames | Sim, geralmente pré-treinado |
+| **DiT backbone** | Aprende a fazer diffusion guiado | Sim, é o núcleo |
+| **Text encoder** | Entende prompts | Geralmente congelado (T5/CLIP pré-treinados) |
+
+Então quando você vê "modelo T2V" e "modelo I2V" no Wan ou CogVideoX, na prática são **pesos diferentes do mesmo backbone DiT**, treinados com estratégias de conditioning diferentes — não arquiteturas separadas.
+
+Qual parte você quer aprofundar — a arquitetura do DiT em si, o VAE, ou como estruturar o pipeline de treinamento?
+
 ## O que é realisticamente possível fazer
 
 Existem 3 caminhos viáveis dependendo do seu objetivo real:
