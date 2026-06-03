@@ -8,7 +8,18 @@ O que o Seedance 2.0 é por baixo, é um **Video Diffusion Transformer** (simila
 - Time de dezenas de pesquisadores
 - Orçamento estimado: **$5M–$50M** só em compute
 
-Isso está fora do alcance de uma pessoa ou equipe pequena.
+Isso está fora do alcance de uma pessoa ou equipe pequena, antes de qualquer código: Você não pode criar um modelo "baseado no Seedance 2.0" — os pesos, arquitetura interna e dados de treinamento são propriedade fechada do ByteDance. Não há como clonar, fazer fine-tune ou destilação do Seedance 2.0 legalmente, porque os pesos nunca foram publicados.
+
+O que você realmente quer é provavelmente isso: rodar um modelo de geração de vídeo open-source de graça, no seu próprio servidor, sem pagar API nenhuma. Isso é totalmente viável. Os melhores candidatos hoje:
+
+| Modelo | Qualidade | VRAM mínima | Licença |
+|---|---|---|---|
+| **Wan 2.1** (Alibaba) | ⭐⭐⭐⭐⭐ | 8 GB | Apache 2.0 ✅ |
+| **HunyuanVideo** (Tencent) | ⭐⭐⭐⭐⭐ | 24 GB | Open ✅ |
+| **CogVideoX-5B** (Zhipu) | ⭐⭐⭐⭐ | 16 GB | Apache 2.0 ✅ |
+| **Open-Sora** | ⭐⭐⭐ | 12 GB | Apache 2.0 ✅ |
+
+O **Wan 2.1** é o mais próximo em qualidade do Seedance 2.0 e roda em GPUs acessíveis (RTX 3080/4070). É viável construir a mesma aplicação FastAPI + React, mas apontando para o **Wan 2.1 rodando 100% local**, sem nenhuma API externa.
 
 ## DiT - Diffusion Transformer
 O **DiT (Diffusion Transformer)** é uma das evoluções mais importantes dos modelos de difusão modernos e está diretamente relacionado ao surgimento de geradores de vídeo extremamente avançados como Sora, Veo, Wan, Kling e outros.
