@@ -21,7 +21,7 @@ O que você realmente quer é provavelmente isso: rodar um modelo de geração d
 
 O **Wan 2.1** é o mais próximo em qualidade do Seedance 2.0 e roda em GPUs acessíveis (RTX 3080/4070). É viável construir a mesma aplicação FastAPI + React, mas apontando para o **Wan 2.1 rodando 100% local**, sem nenhuma API externa.
 
-## DiT - Diffusion Transformer
+# 🧠 DiT - Diffusion Transformer
 O **DiT (Diffusion Transformer)** é uma das evoluções mais importantes dos modelos de difusão modernos e está diretamente relacionado ao surgimento de geradores de vídeo extremamente avançados como Sora, Veo, Wan, Kling e outros.
 
 Para entender o DiT, primeiro é preciso lembrar como os modelos de difusão nasceram.
@@ -340,6 +340,19 @@ Os dois componentes que você treina separadamente
 Então quando você vê "modelo T2V" e "modelo I2V" no Wan ou CogVideoX, na prática são **pesos diferentes do mesmo backbone DiT**, treinados com estratégias de conditioning diferentes — não arquiteturas separadas.
 
 Qual parte você quer aprofundar — a arquitetura do DiT em si, o VAE, ou como estruturar o pipeline de treinamento?
+
+# 🎥 Video Diffusion Transformer
+O **Video Diffusion Transformer** (às vezes abreviado como VideoDiT ou VDT em alguns trabalhos) é uma arquitetura de modelo generativo que combina duas ideias centrais da IA moderna: os modelos de difusão e os transformers, aplicados especificamente à geração de vídeo. Para entender isso de forma intuitiva, dá pra pensar que ele é uma evolução natural dos modelos que geram imagens com alta qualidade, mas estendidos para lidar com a dimensão extra do tempo, ou seja, não apenas “o que aparece em cada frame”, mas também “como isso evolui de um frame para o outro de maneira coerente”.
+
+Os modelos de difusão funcionam de maneira conceitual como um processo de “desruído”. Durante o treinamento, eles pegam dados reais (imagens ou vídeos), adicionam ruído progressivamente até que tudo vire algo parecido com estática aleatória, e depois aprendem a inverter esse processo, ou seja, a reconstruir o conteúdo original a partir do ruído. Isso permite que, na geração, você comece com ruído puro e o modelo vá refinando passo a passo até surgir uma imagem ou vídeo coerente. O ponto-chave aqui é que isso não acontece de uma vez só, mas em várias etapas iterativas, o que ajuda na qualidade final.
+
+Já o transformer entra como a espinha dorsal da arquitetura que decide como esse “desruído” acontece de forma estruturada. Transformers são excelentes em modelar relações globais em dados, porque trabalham com mecanismos de atenção, onde cada parte do dado pode “olhar” para outras partes e entender contexto. Em imagens isso já funciona bem, mas em vídeos isso se torna ainda mais importante, porque agora você não está lidando só com pixels em uma grade 2D, mas também com consistência temporal entre frames. O Video Diffusion Transformer usa essa capacidade de atenção para entender não só o espaço (o que está na imagem), mas também o tempo (como isso muda de frame para frame), garantindo continuidade visual, movimento coerente e identidade estável de objetos.
+
+Na prática, o que diferencia esse tipo de modelo de abordagens mais antigas de geração de vídeo é que ele não tenta gerar o vídeo como uma sequência de imagens independentes, nem usa exclusivamente redes convolucionais tradicionais que têm dificuldade em capturar dependências de longo alcance. Em vez disso, ele trata o vídeo como uma sequência estruturada de tokens, algo parecido com linguagem, onde cada “token” pode representar patches de imagem ao longo do tempo. Isso permite que o modelo aprenda relações complexas, como um personagem mantendo sua aparência enquanto se move, iluminação mudando de forma consistente ou objetos interagindo de maneira fisicamente plausível.
+
+Outro ponto importante é que o Video Diffusion Transformer geralmente opera em um espaço latente comprimido, e não diretamente nos pixels brutos. Isso reduz a complexidade computacional e permite trabalhar com vídeos mais longos ou resoluções maiores. O modelo primeiro aprende uma representação comprimida do vídeo, aplica o processo de difusão nesse espaço mais eficiente e depois reconstrói o resultado final em pixels através de um decodificador.
+
+No fundo, ele representa uma convergência de duas linhas fortes da IA moderna: a capacidade dos modelos de difusão de gerar alta qualidade e diversidade, e a capacidade dos transformers de modelar dependências globais complexas. Quando você junta essas duas coisas no domínio temporal do vídeo, você obtém um sistema que não só gera imagens bonitas, mas também consegue “simular” uma continuidade visual convincente, que é justamente o grande desafio da geração de vídeo por IA.
 
 ## O que é realisticamente possível fazer
 Existem 3 caminhos viáveis dependendo do seu objetivo real:
