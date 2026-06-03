@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Wan 2.1 · Local Studio</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,300;0,400;0,500;0,600;1,300&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg:       #0d0d0d;
+      --bg2:      #141414;
+      --bg3:      #1c1c1c;
+      --bg4:      #242424;
+      --line:     #2a2a2a;
+      --line2:    #383838;
+      --green:    #00e676;
+      --green2:   #00c853;
+      --green-dim:#004d1a;
+      --amber:    #ffb300;
+      --red:      #ff3d3d;
+      --blue:     #40c4ff;
+      --text:     #e8e8e8;
+      --muted:    #5a5a5a;
+      --muted2:   #888;
+      --mono:     'IBM Plex Mono', monospace;
+      --sans:     'IBM Plex Sans', sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body {
+      background: var(--bg); color: var(--text);
+      font-family: var(--sans); font-weight: 300;
+      min-height: 100vh;
+    }
+
+    /* scanline overlay */
+    body::before {
+      content: '';
+      position: fixed; inset: 0; pointer-events: none; z-index: 1000;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0,0,0,.08) 2px,
+        rgba(0,0,0,.08) 4px
+      );
+    }
+
+    /* ── header ── */
+    header {
+      display: flex; align-items: stretch;
+      border-bottom: 1px solid var(--line2);
+      background: var(--bg2);
+      position: sticky; top: 0; z-index: 50;
+    }
+    .header-brand {
+      display: flex; align-items: center; gap: 14px;
+      padding: 0 28px;
+      border-right: 1px solid var(--line2);
+    }
+    .brand-dot {
+      width: 10px; height: 10px; border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 8px var(--green);
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%,100% { opacity: 1; box-shadow: 0 0 8px var(--green); }
+      50%      { opacity: .6; box-shadow: 0 0 4px var(--green); }
+    }
+    .brand-text {
+      font-family: var(--mono); font-size: 13px; font-weight: 600;
+      letter-spacing: 2px; text-transform: uppercase; color: var(--green);
+    }
+    .brand-sub { font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: 1px; }
+
+    .header-meta {
+      display: flex; align-items: center; gap: 0;
+      margin-left: auto;
+    }
+    .meta-item {
+      display: flex; align-items: center; gap: 8px;
+      padding: 0 20px; height: 100%;
+      border-left: 1px solid var(--line2);
+      font-family: var(--mono); font-size: 11px; color: var(--muted2);
+    }
+    .meta-item .val { color: var(--text); font-weight: 500; }
+    .meta-item .dot-ok  { width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
+    .meta-item .dot-off { width: 6px; height: 6px; border-radius: 50%; background: var(--muted); }
+
+    /* ── layout ── */
+    .layout {
+      display: grid;
+      grid-template-columns: 380px 1fr 280px;
+      height: calc(100vh - 53px);
+    }
+    @media (max-width: 1100px) { .layout { grid-template-columns: 360px 1fr; } .sidebar { display: none; } }
+    @media (max-width: 750px)  { .layout { grid-template-columns: 1fr; } .controls { height: auto; } }
+
+    /* ── controls (left) ── */
+    .controls {
+      border-right: 1px solid var(--line2);
+      overflow-y: auto; background: var(--bg2);
+      display: flex; flex-direction: column;
+    }
+    .ctrl-section {
+      border-bottom: 1px solid var(--line2);
+      padding: 18px 22px;
+    }
+    .ctrl-section:last-child { border-bottom: none; flex: 1; }
+
+    .section-head {
+      display: flex; align-items: center; gap: 8px;
+      margin-bottom: 14px;
+    }
+    .section-num {
+      font-family: var(--mono); font-size: 10px; color: var(--muted);
+      background: var(--bg3); border: 1px solid var(--line2);
+      padding: 2px 6px; border-radius: 3px;
+    }
+    .section-title {
+      font-family: var(--mono); font-size: 11px;
+      letter-spacing: 2px; text-transform: uppercase; color: var(--muted2);
+    }
+
+    /* mode switcher */
+    .mode-switch { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--line2); border: 1px solid var(--line2); border-radius: 4px; overflow: hidden; }
+    .mode-btn {
+      padding: 9px 12px; text-align: center;
+      background: var(--bg3); color: var(--muted2);
+      font-family: var(--mono); font-size: 11px; font-weight: 500;
+      cursor: pointer; transition: all .15s; border: none;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+    }
+    .mode-btn.active { background: var(--green-dim); color: var(--green); }
+    .mode-btn:hover:not(.active) { background: var(--bg4); color: var(--text); }
+
+    /* field */
+    .field { margin-bottom: 14px; }
+    .field:last-child { margin-bottom: 0; }
+    .field-label {
+      font-family: var(--mono); font-size: 10px;
+      letter-spacing: 1.5px; text-transform: uppercase;
+      color: var(--muted); margin-bottom: 6px; display: block;
+    }
+    textarea, input[type="text"], input[type="number"], select {
+      width: 100%; background: var(--bg3);
+      border: 1px solid var(--line2); border-radius: 3px;
+      color: var(--text); font-family: var(--mono); font-size: 12px;
+      padding: 10px 12px; outline: none; transition: border-color .15s;
+    }
+    textarea { min-height: 90px; resize: vertical; font-size: 12px; line-height: 1.6; }
+    textarea:focus, input:focus, select:focus { border-color: var(--green-dim); }
+    input::placeholder, textarea::placeholder { color: var(--muted); }
+
+    select { cursor: pointer; }
+    select option { background: var(--bg3); }
+
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+
+    /* slider */
+    .slider-row { display: flex; align-items: center; gap: 10px; }
+    input[type="range"] {
+      flex: 1; height: 2px; background: var(--line2);
+      appearance: none; outline: none; cursor: pointer; border-radius: 0; border: none; padding: 0;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      appearance: none; width: 12px; height: 12px;
+      background: var(--green); border-radius: 50%; cursor: pointer;
+    }
+    .slider-val {
+      font-family: var(--mono); font-size: 11px; color: var(--green);
+      min-width: 36px; text-align: right;
+    }
+
+    /* generate button */
+    .btn-gen {
+      width: 100%; padding: 14px;
+      background: transparent; border: 1px solid var(--green);
+      color: var(--green); font-family: var(--mono); font-size: 13px;
+      font-weight: 600; letter-spacing: 2px; text-transform: uppercase;
+      cursor: pointer; transition: all .2s; border-radius: 3px;
+      position: relative; overflow: hidden;
+    }
+    .btn-gen::before {
+      content: ''; position: absolute; inset: 0;
+      background: var(--green); opacity: 0; transition: opacity .2s;
+    }
+    .btn-gen:hover::before { opacity: .08; }
+    .btn-gen:active::before { opacity: .15; }
+    .btn-gen:disabled {
+      border-color: var(--muted); color: var(--muted); cursor: not-allowed;
+    }
+    .btn-gen:disabled::before { display: none; }
+
+    /* ── viewport (center) ── */
+    .viewport {
+      display: flex; flex-direction: column;
+      background: var(--bg); overflow: hidden;
+    }
+    .viewport-toolbar {
+      display: flex; align-items: center; gap: 0;
+      border-bottom: 1px solid var(--line2);
+      background: var(--bg2); height: 40px;
+    }
+    .toolbar-item {
+      display: flex; align-items: center; gap: 6px;
+      padding: 0 16px; height: 100%;
+      border-right: 1px solid var(--line2);
+      font-family: var(--mono); font-size: 10px; color: var(--muted);
+      white-space: nowrap;
+    }
+    .toolbar-item .ti-val { color: var(--text); }
+
+    .viewport-main {
+      flex: 1; display: flex; align-items: center; justify-content: center;
+      padding: 24px; position: relative; overflow: hidden;
+    }
+
+    /* empty state */
+    .empty {
+      display: flex; flex-direction: column; align-items: center; gap: 16px;
+      text-align: center;
+    }
+    .empty-ascii {
+      font-family: var(--mono); font-size: 11px; color: var(--line2);
+      line-height: 1.4; letter-spacing: 2px; white-space: pre;
+    }
+    .empty-label { font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: 3px; text-transform: uppercase; }
+
+    /* processing */
+    .proc {
+      display: flex; flex-direction: column; align-items: center;
+      gap: 20px; text-align: center; width: 100%; max-width: 480px;
+    }
+    .proc-header { font-family: var(--mono); font-size: 12px; color: var(--green); letter-spacing: 2px; }
+    .proc-prompt {
+      font-family: var(--mono); font-size: 11px; color: var(--muted2);
+      font-style: italic; max-width: 400px; line-height: 1.6;
+    }
+    .terminal-line {
+      width: 100%; background: var(--bg2); border: 1px solid var(--line2);
+      border-radius: 3px; padding: 12px 16px;
+      font-family: var(--mono); font-size: 11px; line-height: 2;
+    }
+    .tl-row { display: flex; gap: 10px; align-items: center; }
+    .tl-prompt { color: var(--green); }
+    .tl-cmd { color: var(--text); }
+    .tl-running { color: var(--amber); animation: blink .8s step-end infinite; }
+    @keyframes blink { 50% { opacity: 0; } }
+    .tl-done { color: var(--green); }
+
+    /* progress bar */
+    .prog-wrap {
+      width: 100%; height: 2px; background: var(--line2);
+      overflow: hidden; border-radius: 1px;
+    }
+    .prog-bar {
+      height: 100%; width: 30%;
+      background: linear-gradient(90deg, transparent, var(--green), transparent);
+      animation: sweep 2s ease-in-out infinite;
+    }
+    @keyframes sweep {
+      0%   { transform: translateX(-100%); }
+      100% { transform: translateX(400%); }
+    }
+
+    /* video */
+    .video-wrap {
+      width: 100%; height: 100%;
+      display: flex; flex-direction: column; gap: 0;
+    }
+    video {
+      width: 100%; flex: 1;
+      object-fit: contain; background: #000;
+      display: block;
+    }
+    .video-bar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 16px;
+      background: var(--bg2); border-top: 1px solid var(--line2);
+    }
+    .video-info {
+      font-family: var(--mono); font-size: 10px; color: var(--muted2);
+    }
+    .video-info .vi-prompt { color: var(--text); font-size: 11px; margin-bottom: 2px; max-width: 480px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .video-actions { display: flex; gap: 8px; }
+    .btn-sm {
+      padding: 6px 14px; border: 1px solid var(--line2);
+      background: transparent; color: var(--muted2);
+      font-family: var(--mono); font-size: 10px; letter-spacing: 1px; text-transform: uppercase;
+      cursor: pointer; transition: all .15s; border-radius: 3px; text-decoration: none;
+      display: inline-flex; align-items: center;
+    }
+    .btn-sm:hover { border-color: var(--green); color: var(--green); }
+    .btn-sm.primary { border-color: var(--green); color: var(--green); }
+
+    /* error */
+    .err {
+      display: flex; flex-direction: column; align-items: center;
+      gap: 14px; text-align: center;
+    }
+    .err-code { font-family: var(--mono); font-size: 11px; color: var(--red); letter-spacing: 2px; }
+    .err-msg { font-family: var(--mono); font-size: 11px; color: var(--muted2); max-width: 360px; line-height: 1.6; }
+
+    /* ── sidebar (right) ── */
+    .sidebar {
+      border-left: 1px solid var(--line2);
+      background: var(--bg2); overflow-y: auto;
+    }
+    .sidebar-section { border-bottom: 1px solid var(--line2); }
+    .sidebar-head {
+      padding: 12px 16px;
+      font-family: var(--mono); font-size: 10px;
+      letter-spacing: 2px; text-transform: uppercase; color: var(--muted);
+      border-bottom: 1px solid var(--line2); background: var(--bg3);
+    }
+    .job-list { padding: 8px; display: flex; flex-direction: column; gap: 4px; }
+    .job-item {
+      padding: 8px 10px; border: 1px solid var(--line2); border-radius: 3px;
+      background: var(--bg3); cursor: pointer; transition: border-color .15s;
+    }
+    .job-item:hover { border-color: var(--line2); background: var(--bg4); }
+    .job-item.active-job { border-color: var(--green-dim); }
+    .ji-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+    .ji-mode { font-family: var(--mono); font-size: 9px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; }
+    .ji-status {
+      font-family: var(--mono); font-size: 9px;
+      padding: 1px 6px; border-radius: 2px; text-transform: uppercase;
+    }
+    .s-completed { background: rgba(0,230,118,.1); color: var(--green); }
+    .s-processing { background: rgba(255,179,0,.1); color: var(--amber); }
+    .s-failed     { background: rgba(255,61,61,.1); color: var(--red); }
+    .s-queued     { background: rgba(90,90,90,.1); color: var(--muted2); }
+    .ji-prompt { font-size: 11px; color: var(--muted2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .ji-time { font-family: var(--mono); font-size: 9px; color: var(--muted); margin-top: 3px; }
+
+    .gpu-stats { padding: 12px 16px; display: flex; flex-direction: column; gap: 10px; }
+    .stat-row { display: flex; justify-content: space-between; align-items: center; }
+    .stat-label { font-family: var(--mono); font-size: 10px; color: var(--muted); }
+    .stat-val { font-family: var(--mono); font-size: 11px; color: var(--text); }
+    .stat-bar-wrap { height: 2px; background: var(--line2); border-radius: 1px; margin-top: 4px; }
+    .stat-bar { height: 100%; background: var(--green); border-radius: 1px; transition: width .5s; }
+
+    .no-jobs { font-family: var(--mono); font-size: 10px; color: var(--muted); text-align: center; padding: 20px; }
+
+    /* footer */
+    footer {
+      border-top: 1px solid var(--line2);
+      padding: 10px 22px;
+      display: flex; align-items: center; justify-content: space-between;
+      background: var(--bg2);
+    }
+    .footer-text { font-family: var(--mono); font-size: 10px; color: var(--muted); }
+    .footer-text a { color: var(--green-dim); text-decoration: none; }
+    .footer-text a:hover { color: var(--green); }
+
+    /* ── frame count labels ── */
+    .frames-hint { font-family: var(--mono); font-size: 9px; color: var(--muted); margin-top: 4px; }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useRef, useCallback } = React;
+const API = "http://localhost:8000";
+
+/* ─── GPU Status hook ─── */
+function useGpuStatus() {
+  const [health, setHealth] = useState(null);
+  useEffect(() => {
+    const poll = async () => {
+      try {
+        const r = await fetch(`${API}/health`);
+        setHealth(await r.json());
+      } catch {}
+    };
+    poll();
+    const id = setInterval(poll, 5000);
+    return () => clearInterval(id);
+  }, []);
+  return health;
+}
+
+/* ─── Main App ─── */
+function App() {
+  const [mode, setMode] = useState("t2v");
+  const [prompt, setPrompt] = useState("");
+  const [negPrompt, setNegPrompt] = useState("nsfw, low quality, blur, watermark, distorted");
+  const [imageUrl, setImageUrl] = useState("");
+  const [numFrames, setNumFrames] = useState(81);
+  const [steps, setSteps] = useState(50);
+  const [guidance, setGuidance] = useState(5.0);
+  const [width, setWidth] = useState(832);
+  const [height, setHeight] = useState(480);
+  const [seed, setSeed] = useState(-1);
+
+  const [loading, setLoading] = useState(false);
+  const [currentJob, setCurrentJob] = useState(null);
+  const [history, setHistory] = useState([]);
+  const pollRef = useRef(null);
+  const health = useGpuStatus();
+
+  const fps = 16;
+  const approxSeconds = (numFrames / fps).toFixed(1);
+
+  const stopPoll = () => { if (pollRef.current) clearInterval(pollRef.current); };
+
+  const startPoll = useCallback((jobId) => {
+    stopPoll();
+    pollRef.current = setInterval(async () => {
+      try {
+        const r = await fetch(`${API}/api/status/${jobId}`);
+        const d = await r.json();
+        setCurrentJob(d);
+        setHistory(h => h.map(j => j.job_id === jobId ? d : j));
+        if (d.status === "completed" || d.status === "failed") {
+          stopPoll(); setLoading(false);
+        }
+      } catch { stopPoll(); setLoading(false); }
+    }, 3000);
+  }, []);
+
+  const handleGenerate = async () => {
+    if (!prompt.trim()) return;
+    setLoading(true); setCurrentJob(null);
+    try {
+      const isT2V = mode === "t2v";
+      const ep = isT2V ? `${API}/api/generate/text-to-video` : `${API}/api/generate/image-to-video`;
+      const body = isT2V
+        ? { prompt, negative_prompt: negPrompt, num_frames: numFrames, guidance_scale: guidance, num_inference_steps: steps, width, height, seed }
+        : { prompt, negative_prompt: negPrompt, image_url: imageUrl, num_frames: numFrames, guidance_scale: guidance, num_inference_steps: steps, seed };
+
+      const r = await fetch(ep, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+      if (!r.ok) { const e = await r.json(); throw new Error(e.detail || "Erro"); }
+      const job = await r.json();
+      setCurrentJob(job);
+      setHistory(h => [job, ...h]);
+      startPoll(job.job_id);
+    } catch (e) {
+      setLoading(false);
+      setCurrentJob({ status: "failed", error: e.message });
+    }
+  };
+
+  const handleReset = () => { stopPoll(); setCurrentJob(null); setLoading(false); };
+
+  const canGen = !loading && prompt.trim() && (mode === "t2v" || imageUrl.trim());
+
+  const isProcessing = loading || currentJob?.status === "queued" || currentJob?.status === "processing";
+
+  const GPU_NAME = health?.gpu?.name || "—";
+  const GPU_VRAM_FREE = health?.gpu?.vram_free_gb;
+  const GPU_VRAM_TOTAL = health?.gpu?.vram_total_gb;
+  const vramPct = GPU_VRAM_TOTAL ? Math.round((1 - GPU_VRAM_FREE / GPU_VRAM_TOTAL) * 100) : 0;
+  const deviceLabel = health?.device?.toUpperCase() || "—";
+
+  const PRESETS = [
+    { label:"5s / 480p", frames:81,  w:832,  h:480 },
+    { label:"5s / 720p", frames:81,  w:1280, h:720 },
+    { label:"10s / 480p",frames:161, w:832,  h:480 },
+    { label:"10s / 720p",frames:161, w:1280, h:720 },
+  ];
+
+  return (<>
+    {/* HEADER */}
+    <header>
+      <div className="header-brand" style={{padding:"14px 24px"}}>
+        <div className="brand-dot" />
+        <div>
+          <div className="brand-text">Wan 2.1 Studio</div>
+          <div className="brand-sub">local inference · no api</div>
+        </div>
+      </div>
+      <div className="header-meta">
+        <div className="meta-item">
+          <span>device</span>
+          <span className="val">{deviceLabel}</span>
+        </div>
+        <div className="meta-item">
+          <span>gpu</span>
+          <span className="val" style={{maxWidth:160,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{GPU_NAME}</span>
+        </div>
+        <div className="meta-item">
+          <span>vram</span>
+          <span className="val">{GPU_VRAM_FREE !== undefined ? `${GPU_VRAM_FREE}/${GPU_VRAM_TOTAL} GB` : "—"}</span>
+        </div>
+        <div className="meta-item">
+          <div className={health?.status === "ok" ? "dot-ok" : "dot-off"} />
+          <span>{health?.status === "ok" ? "online" : "offline"}</span>
+        </div>
+      </div>
+    </header>
+
+    <div className="layout">
+      {/* ── CONTROLS ── */}
+      <div className="controls">
+        {/* mode */}
+        <div className="ctrl-section">
+          <div className="section-head">
+            <span className="section-num">01</span>
+            <span className="section-title">Modo</span>
+          </div>
+          <div className="mode-switch">
+            <button className={`mode-btn ${mode==="t2v"?"active":""}`} onClick={() => setMode("t2v")}>
+              <span>TXT</span><span>→ VID</span>
+            </button>
+            <button className={`mode-btn ${mode==="i2v"?"active":""}`} onClick={() => setMode("i2v")}>
+              <span>IMG</span><span>→ VID</span>
+            </button>
+          </div>
+        </div>
+
+        {/* prompt */}
+        <div className="ctrl-section">
+          <div className="section-head">
+            <span className="section-num">02</span>
+            <span className="section-title">Prompt</span>
+          </div>
+          <div className="field">
+            <span className="field-label">Descrição</span>
+            <textarea value={prompt} onChange={e => setPrompt(e.target.value)}
+              placeholder="Descreva o vídeo que deseja gerar. Quanto mais detalhado, melhor o resultado..." />
+          </div>
+          <div className="field">
+            <span className="field-label">Prompt Negativo</span>
+            <textarea value={negPrompt} onChange={e => setNegPrompt(e.target.value)}
+              style={{minHeight:50}} />
+          </div>
+          {mode === "i2v" && (
+            <div className="field">
+              <span className="field-label">URL da Imagem</span>
+              <input type="text" value={imageUrl} onChange={e => setImageUrl(e.target.value)}
+                placeholder="https://exemplo.com/imagem.jpg" />
+            </div>
+          )}
+        </div>
+
+        {/* params */}
+        <div className="ctrl-section">
+          <div className="section-head">
+            <span className="section-num">03</span>
+            <span className="section-title">Parâmetros</span>
+          </div>
+
+          {/* presets */}
+          <div className="field">
+            <span className="field-label">Preset Rápido</span>
+            <div className="grid2">
+              {PRESETS.map(p => (
+                <button key={p.label}
+                  onClick={() => { setNumFrames(p.frames); setWidth(p.w); setHeight(p.h); }}
+                  style={{
+                    padding:"7px", background:"var(--bg3)", border:"1px solid var(--line2)",
+                    borderRadius:3, color: numFrames===p.frames && width===p.w ? "var(--green)" : "var(--muted2)",
+                    fontFamily:"var(--mono)", fontSize:10, cursor:"pointer", letterSpacing:1,
+                    borderColor: numFrames===p.frames && width===p.w ? "var(--green-dim)" : "var(--line2)",
+                    transition:"all .15s"
+                  }}>
+                  {p.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="field">
+            <span className="field-label">Frames — {numFrames} frames ≈ {approxSeconds}s @ 16fps</span>
+            <div className="slider-row">
+              <input type="range" min={17} max={241} step={8} value={numFrames} onChange={e => setNumFrames(Number(e.target.value))} />
+              <span className="slider-val">{numFrames}</span>
+            </div>
+          </div>
+
+          <div className="field">
+            <span className="field-label">Inference Steps — qualidade vs. velocidade</span>
+            <div className="slider-row">
+              <input type="range" min={10} max={100} step={5} value={steps} onChange={e => setSteps(Number(e.target.value))} />
+              <span className="slider-val">{steps}</span>
+            </div>
+          </div>
+
+          <div className="field">
+            <span className="field-label">Guidance Scale — fidelidade ao prompt</span>
+            <div className="slider-row">
+              <input type="range" min={1} max={10} step={0.5} value={guidance} onChange={e => setGuidance(Number(e.target.value))} />
+              <span className="slider-val">{guidance}</span>
+            </div>
+          </div>
+
+          {mode === "t2v" && (
+            <div className="grid2">
+              <div className="field">
+                <span className="field-label">Largura</span>
+                <select value={width} onChange={e => setWidth(Number(e.target.value))}>
+                  <option value={512}>512</option>
+                  <option value={832}>832</option>
+                  <option value={1280}>1280</option>
+                </select>
+              </div>
+              <div className="field">
+                <span className="field-label">Altura</span>
+                <select value={height} onChange={e => setHeight(Number(e.target.value))}>
+                  <option value={320}>320</option>
+                  <option value={480}>480</option>
+                  <option value={720}>720</option>
+                </select>
+              </div>
+            </div>
+          )}
+
+          <div className="field">
+            <span className="field-label">Seed (-1 = aleatório)</span>
+            <input type="number" value={seed} onChange={e => setSeed(Number(e.target.value))} min={-1} />
+          </div>
+        </div>
+
+        {/* generate */}
+        <div className="ctrl-section">
+          <button className="btn-gen" onClick={handleGenerate} disabled={!canGen}>
+            {loading ? "⏳  GERANDO…" : "▶  EXECUTAR WAN 2.1"}
+          </button>
+        </div>
+      </div>
+
+      {/* ── VIEWPORT ── */}
+      <div className="viewport">
+        <div className="viewport-toolbar">
+          <div className="toolbar-item">
+            <span>status</span>
+            <span className="ti-val" style={{color: currentJob?.status === "completed" ? "var(--green)" : currentJob?.status === "failed" ? "var(--red)" : "var(--muted2)"}}>
+              {currentJob?.status || "idle"}
+            </span>
+          </div>
+          {currentJob?.elapsed_seconds && (
+            <div className="toolbar-item"><span>tempo</span><span className="ti-val">{currentJob.elapsed_seconds}s</span></div>
+          )}
+          <div className="toolbar-item"><span>frames</span><span className="ti-val">{numFrames}</span></div>
+          <div className="toolbar-item"><span>res</span><span className="ti-val">{mode==="t2v" ? `${width}×${height}` : "auto"}</span></div>
+        </div>
+
+        <div className="viewport-main">
+          {/* EMPTY */}
+          {!currentJob && !loading && (
+            <div className="empty">
+              <pre className="empty-ascii">{`╔═══════════════╗
+║  WAN 2.1      ║
+║  LOCAL STUDIO ║
+║  ░░░░░░░░░░░  ║
+╚═══════════════╝`}</pre>
+              <div className="empty-label">Aguardando prompt</div>
+            </div>
+          )}
+
+          {/* PROCESSING */}
+          {isProcessing && (
+            <div className="proc">
+              <div className="proc-header">▶ EXECUTANDO INFERÊNCIA</div>
+              <div className="proc-prompt">"{currentJob?.prompt || prompt}"</div>
+              <div className="terminal-line">
+                <div className="tl-row"><span className="tl-prompt">$</span><span className="tl-cmd">wan2.1 --device {health?.device || "cuda"} --frames {numFrames}</span></div>
+                <div className="tl-row"><span className="tl-prompt">→</span><span className="tl-running">carregando modelo…  ▌</span></div>
+                <div className="tl-row"><span className="tl-prompt">→</span><span className="tl-running">diffusion {steps} steps…  ▌</span></div>
+              </div>
+              <div className="prog-wrap"><div className="prog-bar" /></div>
+              <div style={{fontFamily:"var(--mono)",fontSize:10,color:"var(--muted)"}}>
+                Primeira execução: modelo sendo baixado do HuggingFace (~10–60 GB)
+              </div>
+            </div>
+          )}
+
+          {/* ERROR */}
+          {currentJob?.status === "failed" && !loading && (
+            <div className="err">
+              <div style={{fontFamily:"var(--mono)",fontSize:24,color:"var(--red)"}}>⚠</div>
+              <div className="err-code">INFERENCE ERROR</div>
+              <div className="err-msg">{currentJob.error}</div>
+              <button className="btn-sm" onClick={handleReset} style={{marginTop:8}}>↩ TENTAR NOVAMENTE</button>
+            </div>
+          )}
+
+          {/* VIDEO */}
+          {currentJob?.status === "completed" && currentJob?.video_url && (
+            <div className="video-wrap">
+              <video src={`${API}${currentJob.video_url}`} controls autoPlay loop />
+              <div className="video-bar">
+                <div className="video-info">
+                  <div className="vi-prompt">"{currentJob.prompt}"</div>
+                  <div>{currentJob.elapsed_seconds}s de inferência · {numFrames} frames · {mode.toUpperCase()}</div>
+                </div>
+                <div className="video-actions">
+                  <a className="btn-sm primary" href={`${API}${currentJob.video_url}`} download target="_blank">↓ BAIXAR</a>
+                  <button className="btn-sm" onClick={handleReset}>+ NOVO</button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ── SIDEBAR ── */}
+      <div className="sidebar">
+        {/* GPU stats */}
+        <div className="sidebar-section">
+          <div className="sidebar-head">GPU Monitor</div>
+          <div className="gpu-stats">
+            <div>
+              <div className="stat-row"><span className="stat-label">Device</span><span className="stat-val" style={{color:"var(--green)"}}>{deviceLabel}</span></div>
+            </div>
+            <div>
+              <div className="stat-row"><span className="stat-label">VRAM usado</span><span className="stat-val">{vramPct}%</span></div>
+              <div className="stat-bar-wrap"><div className="stat-bar" style={{width:`${vramPct}%`, background: vramPct > 85 ? "var(--red)" : "var(--green)"}} /></div>
+            </div>
+            <div>
+              <div className="stat-row"><span className="stat-label">T2V Model</span></div>
+              <div style={{fontFamily:"var(--mono)",fontSize:9,color:"var(--muted2)",marginTop:3,lineHeight:1.5}}>{health?.t2v_model || "—"}</div>
+            </div>
+            <div>
+              <div className="stat-row">
+                <span className="stat-label">T2V Carregado</span>
+                <span className="stat-val" style={{color: health?.models_loaded?.t2v ? "var(--green)" : "var(--muted)"}}>
+                  {health?.models_loaded?.t2v ? "✓ sim" : "× não"}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* History */}
+        <div className="sidebar-section">
+          <div className="sidebar-head">Histórico — {history.length} jobs</div>
+          <div className="job-list">
+            {history.length === 0 && <div className="no-jobs">nenhum job ainda</div>}
+            {history.slice(0, 20).map(job => (
+              <div key={job.job_id} className={`job-item ${currentJob?.job_id === job.job_id ? "active-job" : ""}`}
+                onClick={() => { setCurrentJob(job); }}>
+                <div className="ji-top">
+                  <span className="ji-mode">{job.mode || "t2v"}</span>
+                  <span className={`ji-status s-${job.status}`}>{job.status}</span>
+                </div>
+                <div className="ji-prompt">{job.prompt || "—"}</div>
+                {job.elapsed_seconds && <div className="ji-time">{job.elapsed_seconds}s</div>}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  </>);
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>
