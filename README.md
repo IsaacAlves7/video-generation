@@ -1,4 +1,4 @@
-# 🎥🎬 Video Generation Landscape
+# 🧠🎥🎬 Video Generation Landscape
 Uma coisa importante para começar: modelos como o **Seedance 2.0**, o **Veo**, o **Sora**, o **Kling** ou o **Wan** normalmente não são apenas uma "LLM que gera vídeo". Na verdade, eles são sistemas multimodais compostos por vários modelos especializados trabalhando juntos. A LLM participa principalmente da compreensão do prompt, mas a geração visual em si costuma ser realizada por arquiteturas de difusão, transformers multimodais e módulos temporais específicos para vídeo.
 
 O que o Seedance 2.0 é por baixo, é um **Video Diffusion Transformer** (similar ao DiT) com geração conjunta de áudio+vídeo. Para replicar algo nesse nível você precisaria de:
