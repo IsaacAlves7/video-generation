@@ -1,6 +1,4 @@
 # 🎥🎬 Video Generation Landscape
-https://piapi.ai/docs/seedance-api/seedance-2
-
 Uma coisa importante para começar: modelos como o **Seedance 2.0**, o **Veo**, o **Sora**, o **Kling** ou o **Wan** normalmente não são apenas uma "LLM que gera vídeo". Na verdade, eles são sistemas multimodais compostos por vários modelos especializados trabalhando juntos. A LLM participa principalmente da compreensão do prompt, mas a geração visual em si costuma ser realizada por arquiteturas de difusão, transformers multimodais e módulos temporais específicos para vídeo.
 
 O que o Seedance 2.0 é por baixo, é um **Video Diffusion Transformer** (similar ao DiT) com geração conjunta de áudio+vídeo. Para replicar algo nesse nível você precisaria de:
@@ -11,6 +9,281 @@ O que o Seedance 2.0 é por baixo, é um **Video Diffusion Transformer** (simila
 - Orçamento estimado: **$5M–$50M** só em compute
 
 Isso está fora do alcance de uma pessoa ou equipe pequena.
+
+## DiT - Diffusion Transformer
+O **DiT (Diffusion Transformer)** é uma das evoluções mais importantes dos modelos de difusão modernos e está diretamente relacionado ao surgimento de geradores de vídeo extremamente avançados como Sora, Veo, Wan, Kling e outros.
+
+Para entender o DiT, primeiro é preciso lembrar como os modelos de difusão nasceram.
+
+Os primeiros modelos de difusão usavam predominantemente CNNs (Convolutional Neural Networks), especialmente arquiteturas chamadas **U-Net**. Durante anos, o pipeline era algo parecido com:
+
+```text
+Prompt
+   ↓
+Encoder de Texto
+   ↓
+U-Net
+   ↓
+Difusão
+   ↓
+Imagem
+```
+
+O U-Net era responsável por olhar para o ruído e decidir como removê-lo passo a passo.
+
+Funcionava muito bem para imagens.
+
+Mas quando começaram a surgir modelos gigantescos, vídeos longos e cenas complexas, apareceram limitações.
+
+As CNNs são excelentes para detectar padrões locais.
+
+Por exemplo:
+
+* bordas;
+* texturas;
+* pequenas regiões da imagem.
+
+Mas elas têm mais dificuldade em entender relações globais.
+
+Imagine uma cena:
+
+```text
+Castelo
+           ↓
+Montanha
+           ↓
+Dragão voando
+```
+
+O modelo precisa compreender a relação entre todos esses elementos simultaneamente.
+
+É aí que entram os Transformers.
+
+Os Transformers revolucionaram primeiro o NLP.
+
+Depois foram adaptados para visão computacional.
+
+Primeiro vieram os:
+
+* Vision Transformers (ViT)
+* Swin Transformers
+* Video Transformers
+
+Depois alguém teve a ideia:
+
+> "E se substituirmos o U-Net inteiro por um Transformer?"
+
+Nasceu o DiT.
+
+Em vez de processar a imagem usando convoluções, o modelo divide a imagem em pequenos blocos chamados patches.
+
+Imagine uma imagem:
+
+```text
+████████
+████████
+████████
+████████
+```
+
+Ela é quebrada em pedaços:
+
+```text
+[Patch 1]
+[Patch 2]
+[Patch 3]
+...
+```
+
+Cada patch vira um token.
+
+Exatamente como uma palavra vira um token em uma LLM.
+
+É por isso que existe uma forte conexão entre:
+
+```text
+LLMs
+Vision Transformers
+DiTs
+```
+
+Todos trabalham sobre tokens.
+
+Um GPT pode receber:
+
+```text
+Batman
+walks
+in
+Gotham
+```
+
+Um DiT recebe:
+
+```text
+Patch 1
+Patch 2
+Patch 3
+Patch 4
+...
+```
+
+A magia acontece na Self-Attention.
+
+O Transformer consegue perguntar:
+
+> "Quais partes da imagem são importantes para entender esta outra parte?"
+
+Isso permite enxergar dependências globais.
+
+Por exemplo:
+
+```text
+Olho esquerdo
+        ↔
+Olho direito
+
+Rosto
+        ↔
+Corpo
+
+Pessoa
+        ↔
+Sombra
+```
+
+Tudo ao mesmo tempo.
+
+Não existe mais aquela limitação local típica das convoluções.
+
+Nos vídeos a coisa fica ainda mais interessante.
+
+Imagine um tensor:
+
+```text
+Largura
+Altura
+Tempo
+```
+
+Ou:
+
+```text
+X
+Y
+T
+```
+
+Agora os patches também possuem dimensão temporal.
+
+O DiT pode observar:
+
+```text
+Frame 1
+Frame 2
+Frame 3
+Frame 4
+```
+
+simultaneamente.
+
+Ele consegue entender:
+
+* movimento;
+* velocidade;
+* direção;
+* consistência temporal.
+
+É uma das razões pelas quais os vídeos modernos parecem muito mais estáveis.
+
+Antes:
+
+```text
+Frame 1 → Pessoa A
+
+Frame 2 → Pessoa B
+
+Frame 3 → Pessoa C
+```
+
+O personagem mudava constantemente.
+
+Com Transformers temporais e DiTs:
+
+```text
+Frame 1 → Pessoa A
+
+Frame 2 → Pessoa A
+
+Frame 3 → Pessoa A
+```
+
+A identidade é preservada com muito mais eficiência.
+
+Outra vantagem é a escalabilidade.
+
+Existe uma observação interessante na pesquisa atual:
+
+> Quanto maior o Transformer, melhor o DiT costuma escalar.
+
+Isso lembra muito o comportamento das LLMs.
+
+Você aumenta:
+
+* parâmetros;
+* dados;
+* GPUs;
+* tempo de treinamento.
+
+E o modelo continua melhorando.
+
+Por isso muitos laboratórios abandonaram progressivamente as U-Nets para modelos baseados em Transformer.
+
+O pipeline moderno costuma ser algo parecido com:
+
+```text
+Prompt
+   ↓
+Text Encoder
+   ↓
+Embeddings
+   ↓
+DiT
+   ↓
+Difusão Latente
+   ↓
+Decoder
+   ↓
+Imagem ou Vídeo
+```
+
+No caso de um gerador como o Seedance 2.0, você pode imaginar algo ainda mais sofisticado:
+
+```text
+Prompt
+   ↓
+LLM
+   ↓
+Entendimento semântico
+   ↓
+Embeddings multimodais
+   ↓
+DiT Espaço-Temporal
+   ↓
+Difusão de vídeo
+   ↓
+Refinamento
+   ↓
+Upscaling
+   ↓
+Vídeo Final
+```
+
+O motivo de tanta gente no mercado de IA estar falando de DiTs atualmente é que eles representam para a geração visual algo semelhante ao que os Transformers representaram para o NLP.
+
+Da mesma forma que o GPT substituiu arquiteturas antigas de linguagem, os DiTs estão gradualmente substituindo arquiteturas tradicionais de difusão baseadas em convolução.
+
+Por isso, quando você vê vídeos extremamente consistentes gerados por modelos de última geração, existe uma grande chance de haver um Diffusion Transformer fazendo boa parte do trabalho pesado por trás dos panos.
 
 Deixa eu clarificar como o DiT realmente funciona: A divisão real no DiT para vídeo: O **conditioning** (o que você passa como entrada para guiar a geração) é que varia, não o tipo de modelo. Um mesmo modelo DiT pode aceitar múltiplos tipos de condicionamento:
 
@@ -28,7 +301,7 @@ Como o DiT processa tudo isso:
 Entrada bruta
      │
      ▼
-  VAE Encoder  ──────────────────────────────────┐
+  VAE Encoder  ───────────────────────────────────┐
 (comprime vídeo/imagem em espaço latente)         │
      │                                            │
      ▼                                            ▼
@@ -58,17 +331,13 @@ Então quando você vê "modelo T2V" e "modelo I2V" no Wan ou CogVideoX, na prá
 Qual parte você quer aprofundar — a arquitetura do DiT em si, o VAE, ou como estruturar o pipeline de treinamento?
 
 ## O que é realisticamente possível fazer
-
 Existem 3 caminhos viáveis dependendo do seu objetivo real:
 
-**Caminho 1 — Fine-tune de um modelo open-source** *(semanas, ~$500–2000 em GPU)*
-Pegar o Wan 2.1 ou CogVideoX e especializar em um estilo/domínio específico com seus próprios dados. Resultado: modelo seu, customizado, rodando local.
+**Caminho 1 — Fine-tune de um modelo open-source** *(semanas, ~$500–2000 em GPU)*: Pegar o Wan 2.1 ou CogVideoX e especializar em um estilo/domínio específico com seus próprios dados. Resultado: modelo seu, customizado, rodando local.
 
-**Caminho 2 — Construir um modelo pequeno do zero** *(meses, viável com 1 GPU)*
-Implementar um Video Diffusion Transformer simples com PyTorch, treinar em um dataset público como WebVid ou Panda-70M. Qualidade bem abaixo do Seedance, mas é **seu** modelo, você entende cada camada.
+**Caminho 2 — Construir um modelo pequeno do zero** *(meses, viável com 1 GPU)*: Implementar um Video Diffusion Transformer simples com PyTorch, treinar em um dataset público como WebVid ou Panda-70M. Qualidade bem abaixo do Seedance, mas é **seu** modelo, você entende cada camada.
 
-**Caminho 3 — Distilação de conhecimento de open-sources** *(meses)*
-Usar modelos open como "professores" para treinar um modelo menor e mais eficiente. Legalmente viável se os professores forem modelos com licença permissiva.
+**Caminho 3 — Distilação de conhecimento de open-sources** *(meses)*: Usar modelos open como "professores" para treinar um modelo menor e mais eficiente. Legalmente viável se os professores forem modelos com licença permissiva.
 
 Qual desses caminhos faz mais sentido para você? E qual é o objetivo final — aprender a fundo, ter um modelo para produção, ou especializar em um domínio específico? Isso muda completamente o que vale a pena construir.
 
@@ -347,10 +616,10 @@ E tudo isso acontece porque o modelo aprendeu uma representação matemática ex
 
 A parte mais impressionante é que o modelo não possui uma biblioteca de vídeos escondida que ele mistura. Ele não procura um vídeo de Batman e outro de chuva para colar um no outro. O que ele faz é gerar uma nova sequência visual a partir das distribuições estatísticas aprendidas. Cada quadro é sintetizado matematicamente naquele momento, condicionado pelo prompt e pelos estados temporais anteriores. É por isso que duas execuções do mesmo prompt podem produzir vídeos diferentes, mas ainda coerentes com a descrição fornecida.
 
-
 ## News:
 - https://www.fanaticalfuturist.com/2018/04/ai-can-create-videos-out-of-thin-air-using-just-text-as-an-input/
 - https://www.techinasia.com/gliacloud-uses-artificial-intelligence-to-automatically-turn-text-into-video
+- 
 
 ## Reddit Posts:
 
