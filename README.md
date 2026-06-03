@@ -48,6 +48,32 @@ O transformer entra como uma evolução arquitetural possível, não obrigatóri
 
 Então a forma mais correta de entender isso é: difusão é o “método de geração”, enquanto transformer, U-Net, CNN e outros são “formas de implementar o cérebro que aprende esse método”. Você pode ter um modelo de difusão com CNN puro, com U-Net, com transformer puro, ou com combinações híbridas. O que muda não é o princípio da difusão, mas a capacidade e o tipo de padrão que o modelo consegue aprender dentro desse processo de remoção de ruído.
 
+Na verdade, a biblioteca Diffusers é apenas uma ferramenta de software. Ela não é necessária para gerar imagens, audios ou vídeos por IA. O que realmente importa é o modelo e a arquitetura por trás dele.
+
+Por exemplo, você pode usar modelos de difusão implementados diretamente em [PyTorch](https://pytorch.org) ou [TensorFlow](https://www.tensorflow.org) sem passar pela biblioteca Diffusers. Foi assim que muitos projetos surgiram originalmente. Os pesquisadores implementavam toda a lógica de treinamento, inferência, schedulers e redes neurais manualmente. A biblioteca Diffusers veio depois para padronizar e simplificar esse trabalho.
+
+Além disso, nem toda IA generativa de imagem ou vídeo usa difusão. Existem outras famílias de modelos. As GANs (Generative Adversarial Networks) dominaram boa parte da geração de imagens antes da popularização da difusão. Modelos como StyleGAN geram rostos extremamente realistas sem usar difusão. Eles funcionam através de uma competição entre uma rede geradora e uma discriminadora.
+
+Outra abordagem são os modelos autoregressivos. Em vez de começar com ruído e remover esse ruído, eles geram conteúdo token por token, de forma semelhante aos LLMs gerando texto palavra por palavra. Alguns modelos modernos de imagem e vídeo seguem essa linha, tratando patches visuais como tokens.
+
+Também existem os modelos baseados em fluxos (normalizing flows), VAEs (Variational Autoencoders) e arquiteturas híbridas que combinam várias técnicas. Um VAE, por exemplo, aprende um espaço latente comprimido e pode gerar novas imagens amostrando desse espaço.
+
+Mais recentemente, surgiram os chamados "diffusion transformers" e também modelos puramente transformer para geração visual. Em vez de uma U-Net tradicional, usam mecanismos de atenção em larga escala para gerar imagens ou vídeos. Alguns sistemas de ponta atuais utilizam arquiteturas híbridas que misturam transformers, espaços latentes e processos de difusão.
+
+Para vídeo, além da difusão, existem modelos que aprendem diretamente a dinâmica temporal, modelos autoregressivos que geram um frame após o outro e sistemas baseados em world models, que tentam aprender uma representação do funcionamento do mundo para prever sequências visuais futuras.
+
+Então, se sua pergunta é "preciso da biblioteca Diffusers para gerar imagens ou vídeos?", a resposta é definitivamente não. Você pode:
+
+* Implementar o modelo diretamente em PyTorch ou TensorFlow.
+* Usar GANs.
+* Usar VAEs.
+* Usar modelos autoregressivos.
+* Usar transformers visuais puros.
+* Usar arquiteturas híbridas.
+* Utilizar engines proprietárias desenvolvidas internamente por empresas.
+
+A biblioteca Diffusers apenas facilita o trabalho com modelos de difusão. Ela está para os modelos de difusão mais ou menos como um framework web está para uma aplicação web: extremamente útil, muito popular, mas não é a única maneira de construir ou executar o sistema.
+
 Se quiser, dá pra ir um nível mais fundo e comparar diretamente por que transformers começaram a dominar certos tipos de difusão (principalmente vídeo e modelos multimodais) e onde eles ainda perdem para U-Nets em eficiência e custo.
 
 # 🧠 DiT - Diffusion Transformer
