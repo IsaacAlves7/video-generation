@@ -1,0 +1,22 @@
+# Core
+fastapi==0.115.5
+uvicorn[standard]==0.32.1
+pydantic==2.10.3
+python-multipart==0.0.17
+ 
+# Wan 2.1 via diffusers
+torch>=2.3.0
+torchvision>=0.18.0
+diffusers>=0.32.0
+transformers>=4.46.0
+accelerate>=1.0.0
+sentencepiece>=0.2.0
+ 
+# Exportar vídeo
+imageio>=2.34.0
+imageio-ffmpeg>=0.5.1
+opencv-python-headless>=4.9.0
+ 
+# Imagem
+Pillow>=10.3.0
+requests>=2.32.0
