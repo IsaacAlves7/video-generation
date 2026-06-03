@@ -619,7 +619,7 @@ A parte mais impressionante é que o modelo não possui uma biblioteca de vídeo
 ## News:
 - https://www.fanaticalfuturist.com/2018/04/ai-can-create-videos-out-of-thin-air-using-just-text-as-an-input/
 - https://www.techinasia.com/gliacloud-uses-artificial-intelligence-to-automatically-turn-text-into-video
-- 
+- https://github.com/vita-epfl/Stable-Video-Infinity
 
 ## Reddit Posts:
 
